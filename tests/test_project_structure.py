@@ -18,6 +18,8 @@ class ProjectStructureTests(unittest.TestCase):
             "cldm",
             "ldm",
             "annotator",
+            "claude/plain",
+            "plan/review",
         ]
         for name in expected:
             self.assertTrue((ROOT / name).is_dir(), f"missing directory: {name}")
