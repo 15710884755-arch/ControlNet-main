@@ -26,10 +26,11 @@ wheel. `requirements-dev.txt` adds test and lint tooling.
 
 ## Local Runtime Notes
 
-The repository contains a `pytorch_lightning/` shim so inference-only code can
-run without importing the full Lightning package. The shim does not provide
-`Trainer`; training scripts need the real PyTorch Lightning package from
-`environment.yaml`.
+The repository contains a `src/pytorch_lightning_shim/` package so inference-only
+code can run without importing the full Lightning package. `lightning_compat.py`
+imports official PyTorch Lightning when it is installed and falls back to the
+shim otherwise. The shim does not provide `Trainer`; training scripts need the
+real PyTorch Lightning package from `environment.yaml`.
 
 Verify the active interpreter and imports:
 

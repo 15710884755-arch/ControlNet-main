@@ -8,13 +8,18 @@ runtime patches. It is a research/demo codebase, not a packaged service.
 ```text
 ControlNet-main/
 |-- configs/                  YAML model configs
-|-- cldm/                     ControlNet model and LDM integration
-|-- ldm/                      Latent Diffusion building blocks
-|-- annotator/                condition preprocessors and detector code
+|-- src/
+|   |-- cldm/                 ControlNet model and LDM integration
+|   |-- ldm/                  Latent Diffusion building blocks
+|   |-- annotator/            condition preprocessors and detector code
+|   `-- pytorch_lightning_shim/ local inference-only compatibility layer
 |-- assets/                   README images, test images, fonts, samples
 |-- scripts/                  maintenance and diagnostic scripts
 |-- tests/                    standard-library test suite
 |-- docs/                     engineering and usage docs
+|-- config.py                 path and runtime configuration
+|-- lightning_compat.py       official Lightning import or local shim fallback
+|-- sitecustomize.py          adds src/ to sys.path for direct scripts
 |-- gradio_*.py               inference entrypoints
 |-- tutorial_*.py             training examples
 |-- tool_*.py                 weight injection and transfer tools
@@ -41,22 +46,24 @@ gradio_*.py
   -> Gradio output
 ```
 
-## Deferred Migration
+## Package Migration Status
 
-The long-term target is a `src/` package layout:
+The base `src/` layout is in place. Package names remain `cldm`, `ldm`, and
+`annotator` so existing imports and YAML targets keep working.
+
+The next optional step is a semantic rename:
 
 ```text
 src/
-  controlnet/       cldm core
-  diffusion/        ldm building blocks
-  preprocessors/    annotator wrappers
+  controlnet/       renamed cldm core
+  diffusion/        renamed ldm building blocks
+  preprocessors/    renamed annotator wrappers
   runtime/          model loading and device policy
   apps/             Gradio and CLI entrypoints
 ```
 
-Move the packages only after the baseline is green. The package move changes
-import paths and YAML `target` strings, so it needs its own change set under the
-delivery workflow.
+That rename changes import paths and YAML `target` strings, so it still needs a
+separate change set. The current layout is intentionally non-breaking.
 
 ## Validation
 

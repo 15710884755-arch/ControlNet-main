@@ -15,9 +15,10 @@ class ProjectStructureTests(unittest.TestCase):
             "docs",
             "assets",
             "assets/samples",
-            "cldm",
-            "ldm",
-            "annotator",
+            "src/cldm",
+            "src/ldm",
+            "src/annotator",
+            "src/pytorch_lightning_shim",
             "claude/plain",
             "plan/review",
         ]
@@ -32,8 +33,13 @@ class ProjectStructureTests(unittest.TestCase):
 
     def test_large_runtime_assets_are_ignored(self):
         ignored = (ROOT / ".gitignore").read_text(encoding="utf-8")
-        for pattern in ["models/", "annotator/ckpts/", "*.pth", "*.bin"]:
+        for pattern in ["models/", "src/annotator/ckpts/", "*.pth", "*.bin"]:
             self.assertIn(pattern, ignored)
+
+    def test_lightning_shim_does_not_shadow_official_package(self):
+        self.assertFalse((ROOT / "pytorch_lightning").exists())
+        self.assertTrue((ROOT / "lightning_compat.py").is_file())
+        self.assertTrue((ROOT / "src" / "pytorch_lightning_shim").is_dir())
 
     def test_gradio_entrypoints_parse_and_use_configs(self):
         entries = sorted(ROOT.glob("gradio_*.py"))

@@ -12,6 +12,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+SRC = ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
 
 import config  # noqa: E402
 
@@ -57,9 +60,10 @@ def main():
     print()
     print("=== PyTorch Lightning ===")
     try:
-        import pytorch_lightning as pl
-        print(f"module: {getattr(pl, '__file__', 'unknown')}")
-        print(f"has Trainer: {hasattr(pl, 'Trainer')}")
+        import lightning_compat
+        print(f"module: {getattr(lightning_compat.pl, '__file__', 'unknown')}")
+        print(f"using shim: {lightning_compat.USING_SHIM}")
+        print(f"has Trainer: {hasattr(lightning_compat.pl, 'Trainer')}")
     except Exception as exc:  # pragma: no cover - diagnostics only
         print(f"MISSING ({exc})")
     return 0

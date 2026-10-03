@@ -2,8 +2,8 @@
 target-version = "py38"
 line-length = 120
 exclude = [
-    "annotator/uniformer",
-    "ldm/modules/midas",
+    "src/annotator/uniformer",
+    "src/ldm/modules/midas",
     "assets",
     "models",
 ]

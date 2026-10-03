@@ -17,6 +17,7 @@ runs/
 # Model weights and preprocessor checkpoints are external runtime assets.
 models/
 annotator/ckpts/
+src/annotator/ckpts/
 
 gradio_pose2image_private.py
 gradio_canny2image_private.py

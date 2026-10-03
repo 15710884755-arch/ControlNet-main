@@ -8,7 +8,7 @@ try {
         exit $LASTEXITCODE
     }
 
-    python -m compileall -q config.py cldm ldm
+    python -m compileall -q config.py src
     if ($LASTEXITCODE -ne 0) {
         exit $LASTEXITCODE
     }

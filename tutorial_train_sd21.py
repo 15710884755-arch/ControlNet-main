@@ -1,10 +1,17 @@
 from share import *
 
-import pytorch_lightning as pl
+import lightning_compat as pl
 from torch.utils.data import DataLoader
 from tutorial_dataset import MyDataset
 from cldm.logger import ImageLogger
 from cldm.model import create_model, load_state_dict
+
+
+if not hasattr(pl, "Trainer"):
+    raise SystemExit(
+        "Training requires the official pytorch-lightning package. "
+        "Create the conda environment from environment.yaml first."
+    )
 
 
 # Configs

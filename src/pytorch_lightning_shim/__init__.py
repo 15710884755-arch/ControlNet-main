@@ -31,5 +31,5 @@ def seed_everything(seed: int):
         torch.cuda.manual_seed_all(seed)
 
 
-from pytorch_lightning.utilities.distributed import rank_zero_only  # noqa: E402
-from pytorch_lightning.callbacks import Callback  # noqa: E402
+from .utilities.distributed import rank_zero_only  # noqa: E402
+from .callbacks import Callback  # noqa: E402

@@ -1,5 +1,13 @@
 import importlib
+import sys
 import unittest
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
 
 
 class CoreImportTests(unittest.TestCase):
@@ -15,4 +23,3 @@ class CoreImportTests(unittest.TestCase):
         self.assertTrue(callable(create_model))
         self.assertTrue(callable(load_state_dict))
         self.assertTrue(callable(resolve_ckpt_path))
-
