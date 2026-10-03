@@ -1,0 +1,62 @@
+{
+  "inference": [
+    {
+      "name": "control_sd15_canny.pth",
+      "url": "https://huggingface.co/lllyasviel/ControlNet/resolve/main/models/control_sd15_canny.pth"
+    },
+    {
+      "name": "control_sd15_depth.pth",
+      "url": "https://huggingface.co/lllyasviel/ControlNet/resolve/main/models/control_sd15_depth.pth"
+    },
+    {
+      "name": "control_sd15_hed.pth",
+      "url": "https://huggingface.co/lllyasviel/ControlNet/resolve/main/models/control_sd15_hed.pth"
+    },
+    {
+      "name": "control_sd15_mlsd.pth",
+      "url": "https://huggingface.co/lllyasviel/ControlNet/resolve/main/models/control_sd15_mlsd.pth"
+    },
+    {
+      "name": "control_sd15_normal.pth",
+      "url": "https://huggingface.co/lllyasviel/ControlNet/resolve/main/models/control_sd15_normal.pth"
+    },
+    {
+      "name": "control_sd15_openpose.pth",
+      "url": "https://huggingface.co/lllyasviel/ControlNet/resolve/main/models/control_sd15_openpose.pth"
+    },
+    {
+      "name": "control_sd15_scribble.pth",
+      "url": "https://huggingface.co/lllyasviel/ControlNet/resolve/main/models/control_sd15_scribble.pth"
+    },
+    {
+      "name": "control_sd15_seg.pth",
+      "url": "https://huggingface.co/lllyasviel/ControlNet/resolve/main/models/control_sd15_seg.pth"
+    }
+  ],
+  "training": [
+    {
+      "name": "control_sd15_ini.ckpt",
+      "url": "https://huggingface.co/lllyasviel/ControlNet/resolve/main/models/control_sd15_ini.ckpt"
+    },
+    {
+      "name": "control_sd21_ini.ckpt",
+      "url": "https://huggingface.co/lllyasviel/ControlNet/resolve/main/models/control_sd21_ini.ckpt"
+    },
+    {
+      "name": "v1-5-pruned.ckpt",
+      "url": null,
+      "note": "Provide a Stable Diffusion 1.5 checkpoint. Source and license vary."
+    },
+    {
+      "name": "anything-v3-full.safetensors",
+      "url": null,
+      "note": "Optional community checkpoint; provide your own file."
+    }
+  ],
+  "detectors": [
+    {
+      "name": "upernet_global_small.pth",
+      "url": "https://huggingface.co/lllyasviel/ControlNet/resolve/main/annotator/ckpts/upernet_global_small.pth"
+    }
+  ]
+}

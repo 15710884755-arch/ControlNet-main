@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import importlib
 import platform
 import sys
@@ -41,7 +42,52 @@ def probe_module(name):
     return f"{version} ({getattr(module, '__file__', 'unknown')})"
 
 
+def declared_versions():
+    try:
+        from omegaconf import OmegaConf
+
+        environment = OmegaConf.load(ROOT / "environment.yaml")
+    except Exception:
+        return {}
+
+    versions = {}
+    for dependency in environment.get("dependencies", []):
+        if isinstance(dependency, str):
+            name, separator, version = dependency.partition("=")
+            if separator:
+                versions[name.strip()] = version.strip()
+            continue
+        try:
+            pip_dependencies = dependency.get("pip", [])
+        except Exception:
+            continue
+        for item in pip_dependencies or []:
+            name, separator, version = str(item).partition("==")
+            if separator:
+                versions[name.strip()] = version.strip()
+    return versions
+
+
+def module_version(name):
+    try:
+        return getattr(importlib.import_module(name), "__version__", "unknown")
+    except Exception:
+        return "missing"
+
+
+def normalize_version(value):
+    return str(value).split("+")[0].strip()
+
+
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="return a non-zero exit code when declared and installed versions differ",
+    )
+    args = parser.parse_args()
+
     print("=== Python ===")
     print(f"python: {sys.version}")
     print(f"executable: {sys.executable}")
@@ -61,11 +107,37 @@ def main():
     print("=== PyTorch Lightning ===")
     try:
         import lightning_compat
+
         print(f"module: {getattr(lightning_compat.pl, '__file__', 'unknown')}")
         print(f"using shim: {lightning_compat.USING_SHIM}")
         print(f"has Trainer: {hasattr(lightning_compat.pl, 'Trainer')}")
+        lightning_version = (
+            "local shim" if lightning_compat.USING_SHIM else probe_module("pytorch_lightning")
+        )
     except Exception as exc:  # pragma: no cover - diagnostics only
         print(f"MISSING ({exc})")
+        lightning_version = "missing"
+
+    print()
+    print("=== Declared Environment ===")
+    declared = declared_versions()
+    checks = [
+        ("python", declared.get("python"), platform.python_version()),
+        ("torch", declared.get("pytorch"), module_version("torch")),
+        ("torchvision", declared.get("torchvision"), module_version("torchvision")),
+        ("gradio", declared.get("gradio"), module_version("gradio")),
+        ("pytorch-lightning", declared.get("pytorch-lightning"), lightning_version),
+    ]
+    drift = []
+    for name, expected, installed in checks:
+        if expected is None:
+            continue
+        status = "OK" if normalize_version(expected) == normalize_version(installed) else "DRIFT"
+        print(f"{status:5} {name}: declared {expected}, installed {installed}")
+        if status == "DRIFT":
+            drift.append(name)
+    if drift and args.strict:
+        return 1
     return 0
 
 

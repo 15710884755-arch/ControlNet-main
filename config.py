@@ -32,7 +32,10 @@ def _env_flag(name, default=False):
 
 
 MODEL_DIR = _env_path("CONTROLNET_MODEL_DIR", ROOT_DIR / "models")
-ANNOTATOR_CKPT_DIR = _env_path("CONTROLNET_ANNOTATOR_CKPT_DIR", ROOT_DIR / "annotator" / "ckpts")
+ANNOTATOR_CKPT_DIR = _env_path(
+    "CONTROLNET_ANNOTATOR_CKPT_DIR",
+    ROOT_DIR / "src" / "annotator" / "ckpts",
+)
 TRAINING_DIR = _env_path("CONTROLNET_TRAINING_DIR", ROOT_DIR / "training")
 
 save_memory = _env_flag("CONTROLNET_SAVE_MEMORY", False)

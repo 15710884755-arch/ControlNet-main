@@ -36,4 +36,9 @@ Verify the active interpreter and imports:
 
 ```powershell
 python scripts\check_env.py
+python scripts\check_env.py --strict
 ```
+
+`--strict` returns a non-zero exit code when the active interpreter differs
+from `environment.yaml`. Resolve training and reproducibility work inside the
+conda environment created from `environment.yaml`.

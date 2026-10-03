@@ -6,7 +6,7 @@ Git and should be stored outside the source tree when possible.
 ## Default Locations
 
 - ControlNet and CLIP weights: `models/`
-- Preprocessor detector weights: `annotator/ckpts/`
+- Preprocessor detector weights: `src/annotator/ckpts/`
 
 The repository supports environment overrides:
 
@@ -43,7 +43,21 @@ models/anything-v3-full.safetensors
 ```
 
 `gradio_seg2image.py` downloads `upernet_global_small.pth` on first use if it is
-missing from `annotator/ckpts/`.
+missing from `src/annotator/ckpts/`.
+
+## Download Manifest
+
+Known download URLs are recorded in `configs/model_manifest.json`. Use the
+downloader in dry-run mode first:
+
+```powershell
+python scripts\download_models.py
+python scripts\download_models.py --group training
+python scripts\download_models.py --group training --apply
+```
+
+The SD1.5 and Anything v3 entries are intentionally marked `manual` because
+their source and license depend on the user's chosen checkpoint.
 
 ## Externalize The Weight Directory
 
@@ -65,6 +79,14 @@ destination and creates a directory junction at the original path.
 
 ## Duplicate Check
 
-`models/control_sd15_mlsd.pth.parts/` contains a second copy-shaped set of
-files. Do not delete it until the primary `control_sd15_mlsd.pth` checkpoint has
-been loaded successfully and its output has been verified.
+`models/control_sd15_mlsd.pth.parts/` was verified against
+`control_sd15_mlsd.pth` by SHA-256 and was an exact duplicate. The parts
+directory was removed to reclaim about 5.32 GB.
+
+Use the verification script before removing similar split copies in the
+future:
+
+```powershell
+python scripts\verify_mlsd_parts.py
+python scripts\verify_mlsd_parts.py --delete-parts
+```
