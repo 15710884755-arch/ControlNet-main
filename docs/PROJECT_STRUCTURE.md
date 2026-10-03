@@ -18,8 +18,9 @@ ControlNet-main/
 |-- tests/                    standard-library test suite
 |-- docs/                     engineering and usage docs
 |-- config.py                 path and runtime configuration
+|-- bootstrap.py              adds src/ to sys.path for direct scripts
 |-- lightning_compat.py       official Lightning import or local shim fallback
-|-- sitecustomize.py          adds src/ to sys.path for direct scripts
+|-- sitecustomize.py          best-effort src/ path bootstrap
 |-- gradio_*.py               inference entrypoints
 |-- tutorial_*.py             training examples
 |-- tool_*.py                 weight injection and transfer tools

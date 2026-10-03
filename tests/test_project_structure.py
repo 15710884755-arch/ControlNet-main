@@ -39,6 +39,7 @@ class ProjectStructureTests(unittest.TestCase):
     def test_lightning_shim_does_not_shadow_official_package(self):
         self.assertFalse((ROOT / "pytorch_lightning").exists())
         self.assertTrue((ROOT / "lightning_compat.py").is_file())
+        self.assertTrue((ROOT / "bootstrap.py").is_file())
         self.assertTrue((ROOT / "src" / "pytorch_lightning_shim").is_dir())
 
     def test_gradio_entrypoints_parse_and_use_configs(self):

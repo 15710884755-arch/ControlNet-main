@@ -1,3 +1,4 @@
+import bootstrap
 import gradio as gr
 
 from annotator.util import resize_image, HWC3
