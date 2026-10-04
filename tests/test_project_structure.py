@@ -31,6 +31,27 @@ class ProjectStructureTests(unittest.TestCase):
         self.assertFalse((ROOT / "models" / "cldm_v15.yaml").exists())
         self.assertFalse((ROOT / "models" / "cldm_v21.yaml").exists())
 
+    def test_plain_templates_use_chinese_names(self):
+        template_dir = ROOT / "claude" / "plain"
+        expected = [
+            "说明.md",
+            "_模板-计划文档.md",
+            "_模板-产品需求文档.md",
+            "_模板-测试用例.md",
+            "_模板-待定事项.md",
+        ]
+        for name in expected:
+            self.assertTrue((template_dir / name).is_file(), f"missing template: {name}")
+        legacy = [
+            "README.md",
+            "_TEMPLATE-plan.md",
+            "_TEMPLATE-prd.md",
+            "_TEMPLATE-test-cases.md",
+            "_TEMPLATE-tbd.md",
+        ]
+        for name in legacy:
+            self.assertFalse((template_dir / name).exists(), f"legacy template remains: {name}")
+
     def test_large_runtime_assets_are_ignored(self):
         ignored = (ROOT / ".gitignore").read_text(encoding="utf-8")
         for pattern in ["models/", "src/annotator/ckpts/", "*.pth", "*.bin"]:

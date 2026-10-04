@@ -50,7 +50,7 @@ flowchart LR
 
 | Stage | Goal | Outputs | Entry / exit conditions |
 |---|---|---|---|
-| 1 System planning | Define scope, interfaces, transaction data, and acceptance criteria | `claude/plain/<id>-plan.md`, PRD, test-case list, interface and transaction review, TBD register | Entry: requirement accepted and pro/personal scenario identified. Exit: SOP/flow aligned, PRD and test cases complete, TBDs have owner/date/decision |
+| 1 System planning | Define scope, interfaces, transaction data, and acceptance criteria | `claude/plain/<需求ID>-计划文档.md`, PRD, test-case list, interface and transaction review, TBD register | Entry: requirement accepted and pro/personal scenario identified. Exit: SOP/flow aligned, PRD and test cases complete, TBDs have owner/date/decision |
 | 2 Visual confirmation | Review milestones and freeze test data and control instructions | `plan/review/<id>-review.md`, updated `plan/review/<id>-approve-plan.md`, retrospective notes | Entry: planning artifacts are versioned. Exit: milestone reviewed, data and control instructions verified, Approve plan updated |
 | 3 TDD implementation | Drive implementation with failing tests, then refactor and measure coverage | RED/GREEN evidence, refactor notes, coverage report, test report | Entry: test-case list reviewed. Exit: RED reproducible, GREEN passing, refactor behavior-neutral, coverage threshold met |
 | 4 General code review | Clean quality, refactor, and find latent defects | Code-review record, issue list, static checks, build result | Entry: TDD quality gate passed. Exit: blocking findings closed |
