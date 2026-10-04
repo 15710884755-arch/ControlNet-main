@@ -18,6 +18,31 @@ conda env create -f environment.yaml
 conda activate control
 ```
 
+## Verified Local Environment
+
+`environment.control-gpu.lock.yaml` is an exported snapshot of the local
+`control-gpu` environment used to run the current test suite and inference
+entrypoints. It is a reproducibility record, not a replacement for
+`environment.yaml`.
+
+- Python 3.10.21
+- PyTorch 2.7.0+cu128
+- Torchvision 0.22.0+cu128
+- Gradio 3.16.2
+- Transformers 4.19.2
+
+Recreate it with:
+
+```text
+conda env create -f environment.control-gpu.lock.yaml
+conda activate control-gpu
+```
+
+This lock file does not include an official PyTorch Lightning installation with
+`Trainer`. It is suitable for inference and the standard-library test suite,
+but not for training. Use the `control` environment created from
+`environment.yaml` for training and weight-transfer work.
+
 ## Pip Mirror
 
 `requirements.txt` mirrors the pip-level dependencies for environments that do
@@ -42,3 +67,6 @@ python scripts\check_env.py --strict
 `--strict` returns a non-zero exit code when the active interpreter differs
 from `environment.yaml`. Resolve training and reproducibility work inside the
 conda environment created from `environment.yaml`.
+
+The lock file has no machine-specific `prefix:` entry, so it can be committed
+and recreated on another checkout.

@@ -51,3 +51,10 @@ class ProjectStructureTests(unittest.TestCase):
             if path.name != "gradio_annotator.py":
                 self.assertIn("create_model", source, path.name)
             self.assertNotIn("models/cldm_v15.yaml", source, path.name)
+
+    def test_local_environment_lock_is_portable(self):
+        lock = (ROOT / "environment.control-gpu.lock.yaml").read_text(encoding="utf-8")
+        self.assertIn("name: control-gpu", lock)
+        self.assertIn("torch==2.7.0+cu128", lock)
+        self.assertIn("torchvision==0.22.0+cu128", lock)
+        self.assertNotIn("\nprefix:", lock)
