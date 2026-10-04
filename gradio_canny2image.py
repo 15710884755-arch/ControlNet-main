@@ -5,6 +5,7 @@ import cv2
 import einops
 import gradio as gr
 import numpy as np
+import os
 import torch
 
 # === GPU optimizations ===
@@ -112,4 +113,5 @@ with block:
     run_button.click(fn=process, inputs=ips, outputs=[result_gallery])
 
 
-block.launch(server_name='0.0.0.0', server_port=7860)
+server_port = int(os.environ.get('GRADIO_SERVER_PORT', '7860'))
+block.launch(server_name='0.0.0.0', server_port=server_port)
