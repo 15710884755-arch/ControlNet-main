@@ -38,6 +38,10 @@ ddim_sampler = DDIMSampler(model)
 
 
 def process(input_image, prompt, a_prompt, n_prompt, num_samples, image_resolution, ddim_steps, guess_mode, strength, scale, seed, eta, low_threshold, high_threshold):
+    if input_image is None:
+        raise gr.Error('请先上传一张图片。')
+    if not prompt or not prompt.strip():
+        raise gr.Error('请输入提示词。')
     with torch.no_grad():
         img = resize_image(HWC3(input_image), image_resolution)
         H, W, C = img.shape
