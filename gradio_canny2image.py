@@ -6,6 +6,7 @@ import einops
 import gradio as gr
 import numpy as np
 import os
+import threading
 import torch
 
 # === GPU optimizations ===
@@ -37,6 +38,21 @@ model.load_state_dict(load_state_dict('./models/control_sd15_canny.pth', locatio
 model = model.cuda()
 ddim_sampler = DDIMSampler(model)
 
+cancel_event = threading.Event()
+
+
+def prepare_generation():
+    cancel_event.clear()
+
+
+def stop_generation():
+    cancel_event.set()
+
+
+def raise_if_cancelled():
+    if cancel_event.is_set():
+        raise gr.Error('生成已停止。')
+
 
 def process(input_image, prompt, a_prompt, n_prompt, num_samples, image_resolution, ddim_steps, guess_mode, strength, scale, seed, eta, low_threshold, high_threshold):
     if input_image is None:
@@ -45,6 +61,7 @@ def process(input_image, prompt, a_prompt, n_prompt, num_samples, image_resoluti
         raise gr.Error('请输入提示词。')
     with torch.no_grad():
         img = resize_image(HWC3(input_image), image_resolution)
+        raise_if_cancelled()
         H, W, C = img.shape
 
         detected_map = apply_canny(img, low_threshold, high_threshold)
@@ -64,6 +81,7 @@ def process(input_image, prompt, a_prompt, n_prompt, num_samples, image_resoluti
         cond = {"c_concat": [control], "c_crossattn": [model.get_learned_conditioning([prompt + ', ' + a_prompt] * num_samples)]}
         un_cond = {"c_concat": None if guess_mode else [control], "c_crossattn": [model.get_learned_conditioning([n_prompt] * num_samples)]}
         shape = (4, H // 8, W // 8)
+        raise_if_cancelled()
 
         if config.save_memory:
             model.low_vram_shift(is_diffusing=True)
@@ -72,10 +90,12 @@ def process(input_image, prompt, a_prompt, n_prompt, num_samples, image_resoluti
         samples, intermediates = ddim_sampler.sample(ddim_steps, num_samples,
                                                      shape, cond, verbose=False, eta=eta,
                                                      unconditional_guidance_scale=scale,
-                                                     unconditional_conditioning=un_cond)
+                                                     unconditional_conditioning=un_cond,
+                                                     callback=lambda _: raise_if_cancelled())
 
         if config.save_memory:
             model.low_vram_shift(is_diffusing=False)
+        raise_if_cancelled()
 
         x_samples = model.decode_first_stage(samples)
         x_samples = (einops.rearrange(x_samples, 'b c h w -> b h w c') * 127.5 + 127.5).cpu().numpy().clip(0, 255).astype(np.uint8)
@@ -92,7 +112,9 @@ with block:
         with gr.Column():
             input_image = gr.Image(source='upload', type="numpy")
             prompt = gr.Textbox(label="Prompt")
-            run_button = gr.Button(label="Run")
+            with gr.Row():
+                run_button = gr.Button(label="Run")
+                stop_button = gr.Button(value="停止生成", variant="stop")
             with gr.Accordion("Advanced options", open=False):
                 num_samples = gr.Slider(label="Images", minimum=1, maximum=12, value=1, step=1)
                 image_resolution = gr.Slider(label="Image Resolution", minimum=256, maximum=768, value=384, step=64)
@@ -110,7 +132,11 @@ with block:
         with gr.Column():
             result_gallery = gr.Gallery(label='Output', show_label=False, elem_id="gallery").style(grid=2, height='auto')
     ips = [input_image, prompt, a_prompt, n_prompt, num_samples, image_resolution, ddim_steps, guess_mode, strength, scale, seed, eta, low_threshold, high_threshold]
-    run_button.click(fn=process, inputs=ips, outputs=[result_gallery])
+    run_event = run_button.click(
+        fn=prepare_generation, inputs=None, outputs=None, queue=False
+    ).then(fn=process, inputs=ips, outputs=[result_gallery])
+    stop_button.click(fn=stop_generation, inputs=None, outputs=None, queue=False)
+    stop_button.click(fn=None, inputs=None, outputs=None, queue=False, cancels=[run_event])
 
 
 server_port = int(os.environ.get('GRADIO_SERVER_PORT', '7860'))
