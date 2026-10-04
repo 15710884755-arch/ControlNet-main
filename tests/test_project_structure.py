@@ -82,6 +82,16 @@ class ProjectStructureTests(unittest.TestCase):
         self.assertIn("stop_button.click(fn=None", source)
         self.assertIn("cancels=[run_event]", source)
 
+    def test_scribble_web_ui_supports_canvas_and_cancellation(self):
+        source = (ROOT / "gradio_scribble2image_interactive.py").read_text(encoding="utf-8")
+        self.assertIn("control_sd15_scribble.pth", source)
+        self.assertIn("gr.Blocks(title='ControlNet 与用户涂鸦')", source)
+        self.assertIn("source='canvas'", source)
+        self.assertIn("cancel_event.set()", source)
+        self.assertIn("callback=lambda _: raise_if_cancelled()", source)
+        self.assertIn("cancels=[run_event]", source)
+        self.assertIn("GRADIO_SERVER_PORT", source)
+
     def test_local_environment_lock_is_portable(self):
         lock = (ROOT / "environment.control-gpu.lock.yaml").read_text(encoding="utf-8")
         self.assertIn("name: control-gpu", lock)
