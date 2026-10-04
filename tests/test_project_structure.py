@@ -58,3 +58,13 @@ class ProjectStructureTests(unittest.TestCase):
         self.assertIn("torch==2.7.0+cu128", lock)
         self.assertIn("torchvision==0.22.0+cu128", lock)
         self.assertNotIn("\nprefix:", lock)
+
+    def test_training_environment_lock_is_portable(self):
+        lock = (ROOT / "environment.control.lock.yaml").read_text(encoding="utf-8")
+        self.assertIn("name: control", lock)
+        self.assertIn("python=3.8.5", lock)
+        self.assertIn("pytorch=1.12.1", lock)
+        self.assertIn("pytorch-lightning==1.5.0", lock)
+        self.assertIn("lmdb==1.8.1", lock)
+        self.assertNotIn("\nprefix:", lock)
+        self.assertNotIn("mirrors.tuna.tsinghua.edu.cn", lock)

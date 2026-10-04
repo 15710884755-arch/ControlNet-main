@@ -36,11 +36,18 @@
   "training": [
     {
       "name": "control_sd15_ini.ckpt",
-      "url": "https://huggingface.co/lllyasviel/ControlNet/resolve/main/models/control_sd15_ini.ckpt"
+      "url": null,
+      "note": "Generate from v1-5-pruned.ckpt with tool_add_control.py; it is not hosted in the ControlNet model repository."
     },
     {
       "name": "control_sd21_ini.ckpt",
-      "url": "https://huggingface.co/lllyasviel/ControlNet/resolve/main/models/control_sd21_ini.ckpt"
+      "url": null,
+      "note": "Generate from v2-1_512-ema-pruned.ckpt with tool_add_control_sd21.py; it is not hosted in the ControlNet model repository."
+    },
+    {
+      "name": "v2-1_512-ema-pruned.ckpt",
+      "url": null,
+      "note": "Provide the Stable Diffusion 2.1 base checkpoint used to generate control_sd21_ini.ckpt. Source and license vary."
     },
     {
       "name": "v1-5-pruned.ckpt",

@@ -26,6 +26,7 @@ ControlNet-main/
 |-- tool_*.py                 weight injection and transfer tools
 |-- models/                   external model assets (gitignored)
 |-- environment.yaml
+|-- environment.control.lock.yaml verified training environment
 |-- environment.control-gpu.lock.yaml verified local inference environment
 |-- requirements.txt
 |-- requirements-dev.txt

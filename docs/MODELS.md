@@ -39,7 +39,17 @@ Training and weight-transfer scripts also expect:
 models/control_sd15_ini.ckpt
 models/control_sd21_ini.ckpt
 models/v1-5-pruned.ckpt
+models/v2-1_512-ema-pruned.ckpt
 models/anything-v3-full.safetensors
+```
+
+The two `control_sd*_ini.ckpt` files are generated assets, not files hosted in
+the official ControlNet model repository. Generate them from the corresponding
+base checkpoints:
+
+```powershell
+python tool_add_control.py models\v1-5-pruned.ckpt models\control_sd15_ini.ckpt
+python tool_add_control_sd21.py models\v2-1_512-ema-pruned.ckpt models\control_sd21_ini.ckpt
 ```
 
 `gradio_seg2image.py` downloads `upernet_global_small.pth` on first use if it is
@@ -56,8 +66,9 @@ python scripts\download_models.py --group training
 python scripts\download_models.py --group training --apply
 ```
 
-The SD1.5 and Anything v3 entries are intentionally marked `manual` because
-their source and license depend on the user's chosen checkpoint.
+All training entries are intentionally marked `manual` because the base
+checkpoint source, access terms, and license depend on the user's chosen
+distribution. Only inference and detector assets are downloaded automatically.
 
 ## Externalize The Weight Directory
 

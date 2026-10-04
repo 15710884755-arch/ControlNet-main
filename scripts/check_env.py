@@ -112,7 +112,9 @@ def main():
         print(f"using shim: {lightning_compat.USING_SHIM}")
         print(f"has Trainer: {hasattr(lightning_compat.pl, 'Trainer')}")
         lightning_version = (
-            "local shim" if lightning_compat.USING_SHIM else probe_module("pytorch_lightning")
+            "local shim"
+            if lightning_compat.USING_SHIM
+            else module_version("pytorch_lightning")
         )
     except Exception as exc:  # pragma: no cover - diagnostics only
         print(f"MISSING ({exc})")

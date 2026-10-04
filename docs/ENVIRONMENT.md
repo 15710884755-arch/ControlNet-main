@@ -70,3 +70,25 @@ conda environment created from `environment.yaml`.
 
 The lock file has no machine-specific `prefix:` entry, so it can be committed
 and recreated on another checkout.
+
+## Verified Training Environment
+
+`environment.control.lock.yaml` records the verified `control` training
+environment. It keeps the versions declared by `environment.yaml`, including
+Python 3.8.5, PyTorch 1.12.1, Torchvision 0.13.1, Gradio 3.16.2, and PyTorch
+Lightning 1.5.0. The exported environment has an official `Trainer`.
+
+```text
+conda env create -f environment.control.lock.yaml
+conda activate control
+python scripts\check_env.py
+```
+
+On this machine, the user-level `.condarc` routed conda through a Tsinghua
+mirror that returned HTTP 403, and the user-level pip index lacked the pinned
+Gradio release. The verified lock removes the mirror entries and can be used
+with an official PyPI index when installing or repairing pip dependencies:
+
+```powershell
+$env:PIP_INDEX_URL = 'https://pypi.org/simple'
+```
