@@ -1,7 +1,10 @@
+import os
+
+os.environ.setdefault('PYTORCH_CUDA_ALLOC_CONF', 'expandable_segments:True')
+
 from share import *
 import config
 
-import os
 import random
 import threading
 
@@ -36,6 +39,10 @@ model.load_state_dict(load_state_dict('./models/control_sd15_scribble.pth', loca
 model = model.cuda()
 ddim_sampler = DDIMSampler(model)
 
+GPU_MEMORY_GB = torch.cuda.get_device_properties(0).total_memory / (1024 ** 3)
+MAX_IMAGE_RESOLUTION = 512 if GPU_MEMORY_GB <= 8.5 else 768
+MAX_IMAGE_SAMPLES = 2 if GPU_MEMORY_GB <= 8.5 else 8
+
 cancel_event = threading.Event()
 
 
@@ -62,6 +69,12 @@ def process(input_image, prompt, a_prompt, n_prompt, num_samples, image_resoluti
     prompt = prompt.strip() if prompt else ''
     if not prompt:
         raise gr.Error('请输入提示词。')
+    num_samples = int(num_samples)
+    image_resolution = int(image_resolution)
+    if num_samples > MAX_IMAGE_SAMPLES:
+        raise gr.Error(f'当前显存下每次最多生成 {MAX_IMAGE_SAMPLES} 张图片。')
+    if image_resolution > MAX_IMAGE_RESOLUTION:
+        raise gr.Error(f'当前显存下图片分辨率最高为 {MAX_IMAGE_RESOLUTION}。')
 
     raw_image = np.asarray(input_image)
     if raw_image.ndim == 2:
@@ -120,10 +133,11 @@ def process(input_image, prompt, a_prompt, n_prompt, num_samples, image_resoluti
             model.low_vram_shift(is_diffusing=False)
         raise_if_cancelled()
 
-        x_samples = model.decode_first_stage(samples)
-        x_samples = (einops.rearrange(x_samples, 'b c h w -> b h w c') * 127.5 + 127.5).cpu().numpy().clip(0, 255).astype(np.uint8)
-
-        results = [x_samples[i] for i in range(num_samples)]
+        results = []
+        for i in range(num_samples):
+            x_sample = model.decode_first_stage(samples[i:i + 1])
+            x_sample = (einops.rearrange(x_sample, 'b c h w -> b h w c') * 127.5 + 127.5).cpu().numpy().clip(0, 255).astype(np.uint8)
+            results.append(x_sample[0])
     return [255 - detected_map] + results
 
 
@@ -151,8 +165,8 @@ with block:
                 run_button = gr.Button('生成', variant='primary')
                 stop_button = gr.Button('停止生成', variant='stop')
             with gr.Accordion('高级选项', open=False):
-                num_samples = gr.Slider(label='图片数量', minimum=1, maximum=12, value=1, step=1)
-                image_resolution = gr.Slider(label='图片分辨率', minimum=256, maximum=768, value=512, step=64)
+                num_samples = gr.Slider(label='图片数量', minimum=1, maximum=MAX_IMAGE_SAMPLES, value=1, step=1)
+                image_resolution = gr.Slider(label='图片分辨率', minimum=256, maximum=MAX_IMAGE_RESOLUTION, value=512, step=64)
                 strength = gr.Slider(label='控制强度', minimum=0.0, maximum=2.0, value=1.0, step=0.01)
                 guess_mode = gr.Checkbox(label='Guess Mode', value=False)
                 ddim_steps = gr.Slider(label='采样步数', minimum=1, maximum=100, value=20, step=1)

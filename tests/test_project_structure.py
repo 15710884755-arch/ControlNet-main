@@ -91,6 +91,8 @@ class ProjectStructureTests(unittest.TestCase):
         self.assertIn("callback=lambda _: raise_if_cancelled()", source)
         self.assertIn("cancels=[run_event]", source)
         self.assertIn("GRADIO_SERVER_PORT", source)
+        self.assertIn("MAX_IMAGE_RESOLUTION", source)
+        self.assertIn("samples[i:i + 1]", source)
 
     def test_local_environment_lock_is_portable(self):
         lock = (ROOT / "environment.control-gpu.lock.yaml").read_text(encoding="utf-8")
