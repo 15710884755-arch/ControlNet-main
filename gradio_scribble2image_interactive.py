@@ -31,6 +31,7 @@ def seed_everything(seed: int):
 from annotator.util import resize_image, HWC3
 from cldm.model import create_model, load_state_dict
 from cldm.ddim_hacked import DDIMSampler
+from prompt_translation import translate_prompt_to_english
 
 
 model = create_model('./configs/cldm_v15.yaml').cpu()
@@ -73,12 +74,15 @@ def raise_if_cancelled():
         raise gr.Error('生成已停止。')
 
 
-def process(input_image, prompt, a_prompt, n_prompt, num_samples, image_resolution, ddim_steps, guess_mode, strength, scale, seed, eta):
+def process(input_image, prompt, a_prompt, n_prompt, num_samples, image_resolution, ddim_steps, guess_mode, strength, scale, prompt_weight, seed, eta):
     if input_image is None:
         raise gr.Error('请先在涂鸦画板上绘制内容。')
     prompt = prompt.strip() if prompt else ''
     if not prompt:
         raise gr.Error('请输入提示词。')
+    prompt_for_model = translate_prompt_to_english(prompt) or prompt
+    condition_text = ', '.join(part.strip() for part in [prompt_for_model, a_prompt] if part and part.strip())
+    effective_scale = min(30.0, max(0.1, float(scale) * float(prompt_weight)))
     num_samples = int(num_samples)
     image_resolution = int(image_resolution)
     if num_samples > MAX_IMAGE_SAMPLES:
@@ -115,7 +119,7 @@ def process(input_image, prompt, a_prompt, n_prompt, num_samples, image_resoluti
 
         cond = {
             'c_concat': [control],
-            'c_crossattn': [model.get_learned_conditioning([prompt + ', ' + a_prompt] * num_samples)],
+            'c_crossattn': [model.get_learned_conditioning([condition_text] * num_samples)],
         }
         un_cond = {
             'c_concat': None if guess_mode else [control],
@@ -135,7 +139,7 @@ def process(input_image, prompt, a_prompt, n_prompt, num_samples, image_resoluti
             cond,
             verbose=False,
             eta=eta,
-            unconditional_guidance_scale=scale,
+            unconditional_guidance_scale=effective_scale,
             unconditional_conditioning=un_cond,
             callback=lambda _: raise_if_cancelled(),
         )
@@ -171,7 +175,7 @@ with block:
                 label='涂鸦画板',
             )
             clear_button = gr.Button('清空画布')
-            prompt = gr.Textbox(label='提示词', placeholder='例如：turtle')
+            prompt = gr.Textbox(label='提示词', placeholder='例如：笑脸 / smiling face')
             with gr.Row():
                 run_button = gr.Button('生成', variant='primary')
                 stop_button = gr.Button('停止生成', variant='stop')
@@ -182,6 +186,14 @@ with block:
                 guess_mode = gr.Checkbox(label='Guess Mode', value=False)
                 ddim_steps = gr.Slider(label='采样步数', minimum=1, maximum=100, value=20, step=1)
                 scale = gr.Slider(label='引导强度', minimum=0.1, maximum=30.0, value=9.0, step=0.1)
+                prompt_weight = gr.Slider(
+                    label='提示词权重',
+                    minimum=1.0,
+                    maximum=2.0,
+                    value=1.25,
+                    step=0.05,
+                    info='提高提示词贴合度；中文提示词会自动转英文',
+                )
                 seed = gr.Slider(label='随机种子', minimum=-1, maximum=2147483647, step=1, randomize=True)
                 eta = gr.Number(label='eta (DDIM)', value=0.0)
                 a_prompt = gr.Textbox(label='正向补充词', value='best quality, extremely detailed')
@@ -199,7 +211,7 @@ with block:
             )
 
     clear_button.click(fn=create_canvas, inputs=None, outputs=[input_image])
-    ips = [input_image, prompt, a_prompt, n_prompt, num_samples, image_resolution, ddim_steps, guess_mode, strength, scale, seed, eta]
+    ips = [input_image, prompt, a_prompt, n_prompt, num_samples, image_resolution, ddim_steps, guess_mode, strength, scale, prompt_weight, seed, eta]
     run_event = run_button.click(
         fn=prepare_generation, inputs=None, outputs=None, queue=False
     ).then(fn=process, inputs=ips, outputs=[result_gallery])

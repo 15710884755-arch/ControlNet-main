@@ -94,6 +94,16 @@ class ProjectStructureTests(unittest.TestCase):
         self.assertIn("MAX_IMAGE_RESOLUTION", source)
         self.assertIn("clamp_image_size", source)
         self.assertIn("samples[i:i + 1]", source)
+        self.assertIn("prompt_weight", source)
+        self.assertIn("effective_scale", source)
+        self.assertIn("translate_prompt_to_english", source)
+
+    def test_prompt_translation_has_chinese_fallback(self):
+        from prompt_translation import contains_chinese, translate_prompt_to_english
+
+        self.assertTrue(contains_chinese("笑脸"))
+        self.assertFalse(contains_chinese("smiling face"))
+        self.assertEqual(translate_prompt_to_english("笑脸"), "smiling face")
 
     def test_local_environment_lock_is_portable(self):
         lock = (ROOT / "environment.control-gpu.lock.yaml").read_text(encoding="utf-8")
