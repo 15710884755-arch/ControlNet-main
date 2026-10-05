@@ -1,13 +1,12 @@
 import os
 
-os.environ.setdefault('PYTORCH_CUDA_ALLOC_CONF', 'expandable_segments:True')
-
 from share import *
 import config
 
 import random
 import threading
 
+import cv2
 import einops
 import gradio as gr
 import numpy as np
@@ -50,6 +49,17 @@ def create_canvas():
     return np.full((512, 512, 3), 255, dtype=np.uint8)
 
 
+def clamp_image_size(image, max_side):
+    height, width = image.shape[:2]
+    longest_side = max(height, width)
+    if longest_side <= max_side:
+        return image
+    scale = max_side / longest_side
+    height = max(64, int(np.round(height * scale / 64.0)) * 64)
+    width = max(64, int(np.round(width * scale / 64.0)) * 64)
+    return cv2.resize(image, (width, height), interpolation=cv2.INTER_AREA)
+
+
 def prepare_generation():
     cancel_event.clear()
 
@@ -84,6 +94,7 @@ def process(input_image, prompt, a_prompt, n_prompt, num_samples, image_resoluti
 
     with torch.no_grad():
         img = resize_image(HWC3(raw_image), image_resolution)
+        img = clamp_image_size(img, MAX_IMAGE_RESOLUTION)
         raise_if_cancelled()
         if not np.any(np.min(img, axis=2) < 220):
             raise gr.Error('请先在涂鸦画板上绘制内容。')
