@@ -97,6 +97,7 @@ class ProjectStructureTests(unittest.TestCase):
         self.assertIn("prompt_weight", source)
         self.assertIn("effective_scale", source)
         self.assertIn("translate_prompt_to_english", source)
+        self.assertIn("enhance_prompt_for_generation", source)
 
     def test_prompt_translation_has_chinese_fallback(self):
         from prompt_translation import contains_chinese, translate_prompt_to_english
@@ -104,6 +105,14 @@ class ProjectStructureTests(unittest.TestCase):
         self.assertTrue(contains_chinese("笑脸"))
         self.assertFalse(contains_chinese("smiling face"))
         self.assertEqual(translate_prompt_to_english("笑脸"), "smiling face")
+
+    def test_guangzhou_tower_prompt_includes_visual_landmark_details(self):
+        from prompt_translation import enhance_prompt_for_generation
+
+        prompt = enhance_prompt_for_generation("广州塔", "Canton Tower.")
+        self.assertIn("hyperboloid lattice TV tower", prompt)
+        self.assertIn("narrow twisted waist", prompt)
+        self.assertIn("Guangzhou city skyline", prompt)
 
     def test_local_environment_lock_is_portable(self):
         lock = (ROOT / "environment.control-gpu.lock.yaml").read_text(encoding="utf-8")

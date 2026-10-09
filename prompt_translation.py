@@ -61,6 +61,33 @@ FALLBACK_TRANSLATIONS = {
     "像素": "pixel art",
 }
 
+LANDMARK_ENHANCEMENTS = (
+    (
+        ("广州塔", "小蛮腰", "guangzhou tower", "canton tower"),
+        "Canton Tower, Guangzhou Tower, slender hyperboloid lattice TV tower, narrow twisted waist, tall antenna spire, Guangzhou city skyline, architectural landmark, photorealistic",
+    ),
+    (
+        ("东方明珠", "oriental pearl tower"),
+        "Oriental Pearl TV Tower, stacked spheres on a tall concrete pillar, Shanghai skyline, architectural landmark, photorealistic",
+    ),
+    (
+        ("上海中心", "shanghai tower"),
+        "Shanghai Tower, tall spiraling skyscraper, twisted glass facade, Shanghai skyline, architectural landmark, photorealistic",
+    ),
+    (
+        ("埃菲尔铁塔", "eiffel tower"),
+        "Eiffel Tower, iron lattice tower, wide base, narrow spire, Paris skyline, architectural landmark, photorealistic",
+    ),
+    (
+        ("自由女神", "statue of liberty"),
+        "Statue of Liberty, green copper statue, raised torch, crown, New York harbor, iconic landmark, photorealistic",
+    ),
+    (
+        ("悉尼歌剧院", "sydney opera house"),
+        "Sydney Opera House, white shell-shaped roof, harbor waterfront, iconic modern architecture, photorealistic",
+    ),
+)
+
 _translator = None
 _translator_path = None
 _translator_lock = threading.Lock()
@@ -155,6 +182,32 @@ def _translate_with_fallback(text):
             replaced = True
     translated = re.sub(r"\s+", " ", translated).strip(" ,")
     return translated if replaced else text
+
+
+def _merge_prompt_phrases(base_prompt, enhancement):
+    parts = [part.strip() for part in base_prompt.split(",") if part.strip()]
+    known = {part.lower() for part in parts}
+    for part in enhancement.split(","):
+        phrase = part.strip()
+        if phrase and phrase.lower() not in known:
+            parts.append(phrase)
+            known.add(phrase.lower())
+    return ", ".join(parts)
+
+
+def enhance_prompt_for_generation(prompt, translated_prompt=None):
+    translated = (translated_prompt or prompt or "").strip()
+    source = (prompt or "").lower()
+    translated_lower = translated.lower()
+
+    enhancements = []
+    for triggers, description in LANDMARK_ENHANCEMENTS:
+        if any(trigger.lower() in source or trigger.lower() in translated_lower for trigger in triggers):
+            enhancements.append(description)
+
+    for description in enhancements:
+        translated = _merge_prompt_phrases(translated, description)
+    return translated
 
 
 def translate_prompt_to_english(prompt):

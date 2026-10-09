@@ -31,7 +31,7 @@ def seed_everything(seed: int):
 from annotator.util import resize_image, HWC3
 from cldm.model import create_model, load_state_dict
 from cldm.ddim_hacked import DDIMSampler
-from prompt_translation import translate_prompt_to_english
+from prompt_translation import enhance_prompt_for_generation, translate_prompt_to_english
 
 
 model = create_model('./configs/cldm_v15.yaml').cpu()
@@ -81,6 +81,7 @@ def process(input_image, prompt, a_prompt, n_prompt, num_samples, image_resoluti
     if not prompt:
         raise gr.Error('请输入提示词。')
     prompt_for_model = translate_prompt_to_english(prompt) or prompt
+    prompt_for_model = enhance_prompt_for_generation(prompt, prompt_for_model)
     condition_text = ', '.join(part.strip() for part in [prompt_for_model, a_prompt] if part and part.strip())
     effective_scale = min(30.0, max(0.1, float(scale) * float(prompt_weight)))
     num_samples = int(num_samples)
