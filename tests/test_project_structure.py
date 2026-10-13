@@ -114,6 +114,14 @@ class ProjectStructureTests(unittest.TestCase):
         self.assertIn("narrow twisted waist", prompt)
         self.assertIn("Guangzhou city skyline", prompt)
 
+    def test_training_scripts_support_gradient_accumulation(self):
+        for name in ("tutorial_train.py", "tutorial_train_sd21.py"):
+            source = (ROOT / name).read_text(encoding="utf-8")
+            ast.parse(source, filename=name)
+            self.assertIn("CONTROLNET_ACCUMULATE_GRAD_BATCHES", source, name)
+            self.assertIn("effective_batch_size = batch_size * accumulate_grad_batches", source, name)
+            self.assertIn("accumulate_grad_batches=accumulate_grad_batches", source, name)
+
     def test_local_environment_lock_is_portable(self):
         lock = (ROOT / "environment.control-gpu.lock.yaml").read_text(encoding="utf-8")
         self.assertIn("name: control-gpu", lock)
