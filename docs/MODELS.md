@@ -55,6 +55,49 @@ python tool_add_control_sd21.py models\v2-1_512-ema-pruned.ckpt models\control_s
 `gradio_seg2image.py` downloads `upernet_global_small.pth` on first use if it is
 missing from `src/annotator/ckpts/`.
 
+## SDXL Scribble Mode
+
+The optional SDXL entrypoint uses a separate diffusers pipeline:
+
+```text
+models/sdxl/
+  stable-diffusion-xl-base-1.0/
+  vae-fp16-fix/
+  controlnet-scribble-sdxl-1.0/   (preferred)
+  controlnet-canny-sdxl-1.0/      (fallback)
+```
+
+Prepare the weights with:
+
+```powershell
+python scripts\download_sdxl_scribble.py
+```
+
+Every weight goes through `scripts/parallel_download.py`, which issues several
+ranged GETs at once because `huggingface_hub`'s transfer backends stall on high
+latency links while the CDN keeps serving plain range requests. Hugging Face is
+tried first and ModelScope is used as the mirror; files that are already complete
+are skipped, so re-running the script resumes an interrupted download instead of
+starting over. When the Scribble ControlNet cannot be fetched, the script falls
+back to the SDXL Canny ControlNet. Set `SDXL_DOWNLOAD_CONNECTIONS` to change the
+number of parallel connections (default 8).
+
+Run the SDXL UI with sequential CPU offload on 8 GB GPUs:
+
+```powershell
+$env:SDXL_OFFLOAD = 'sequential'
+$env:GRADIO_SERVER_PORT = '7867'
+python gradio_scribble2image_sdxl.py
+```
+
+`SDXL_OFFLOAD=model` is faster but needs more VRAM. SDXL is substantially
+slower than the SD 1.5 ControlNet entrypoint on an 8 GB laptop GPU. Measured on
+an RTX 5060 Laptop (8 GB) with sequential offload: about 95 s for 1024x1024 at
+20 steps, and about 65 s for 512x512 at 12 steps.
+
+The resolution slider defaults to 1024 because SDXL is trained at that size;
+at 512 or 768 the model tends to tile the composition into repeated panels.
+
 ## Download Manifest
 
 Known download URLs are recorded in `configs/model_manifest.json`. Use the

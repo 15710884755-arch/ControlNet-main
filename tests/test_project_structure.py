@@ -1,4 +1,6 @@
 import ast
+import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -69,7 +71,7 @@ class ProjectStructureTests(unittest.TestCase):
         for path in entries:
             source = path.read_text(encoding="utf-8")
             ast.parse(source, filename=str(path))
-            if path.name != "gradio_annotator.py":
+            if path.name not in {"gradio_annotator.py", "gradio_scribble2image_sdxl.py"}:
                 self.assertIn("create_model", source, path.name)
             self.assertNotIn("models/cldm_v15.yaml", source, path.name)
 
@@ -121,6 +123,49 @@ class ProjectStructureTests(unittest.TestCase):
             self.assertIn("CONTROLNET_ACCUMULATE_GRAD_BATCHES", source, name)
             self.assertIn("effective_batch_size = batch_size * accumulate_grad_batches", source, name)
             self.assertIn("accumulate_grad_batches=accumulate_grad_batches", source, name)
+
+    def test_sdxl_scribble_web_ui_supports_offload_and_controlnet_fallback(self):
+        source = (ROOT / "gradio_scribble2image_sdxl.py").read_text(encoding="utf-8")
+        ast.parse(source, filename="gradio_scribble2image_sdxl.py")
+        self.assertIn("StableDiffusionXLControlNetPipeline", source)
+        self.assertIn("controlnet-scribble-sdxl-1.0", source)
+        self.assertIn("controlnet-canny-sdxl-1.0", source)
+        self.assertIn("enable_sequential_cpu_offload", source)
+        self.assertIn("prompt_weight", source)
+        self.assertIn("GRADIO_SERVER_PORT", source)
+
+    def test_sdxl_download_script_covers_both_mirrors(self):
+        source = (ROOT / "scripts" / "download_sdxl_scribble.py").read_text(encoding="utf-8")
+        ast.parse(source, filename="scripts/download_sdxl_scribble.py")
+        self.assertIn("parallel_download", source)
+        self.assertIn("huggingface.co", source)
+        self.assertIn("modelscope.cn", source)
+        self.assertIn("controlnet-scribble-sdxl-1.0", source)
+        self.assertIn("diffusion_pytorch_model.fp16.safetensors", source)
+
+    def test_parallel_download_plans_byte_ranges(self):
+        sys.path.insert(0, str(ROOT / "scripts"))
+        try:
+            import parallel_download
+        finally:
+            sys.path.pop(0)
+        self.assertEqual(parallel_download.plan_chunks(10, 4), [(0, 3), (4, 7), (8, 9)])
+        self.assertEqual(parallel_download.plan_chunks(8, 4), [(0, 3), (4, 7)])
+        self.assertEqual(parallel_download.plan_chunks(0, 4), [])
+
+    def test_parallel_download_treats_resumed_files_as_incomplete(self):
+        sys.path.insert(0, str(ROOT / "scripts"))
+        try:
+            import parallel_download
+        finally:
+            sys.path.pop(0)
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "weights.safetensors"
+            self.assertFalse(parallel_download.is_complete(target))
+            target.write_bytes(b"partially written")
+            self.assertTrue(parallel_download.is_complete(target))
+            parallel_download.journal_path(target).write_text("[]", encoding="utf-8")
+            self.assertFalse(parallel_download.is_complete(target))
 
     def test_local_environment_lock_is_portable(self):
         lock = (ROOT / "environment.control-gpu.lock.yaml").read_text(encoding="utf-8")
